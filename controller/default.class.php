@@ -77,6 +77,7 @@ class defaultController extends appController
 		
 		$data['fields'] = get_fields_info( $table );
 		
+		//LazyRest默认实现的接口
 		$data['actions'] = array( 'list' => 'List' , 'insert'=>'Insert' , 'update'=> 'Update' , 'remove' => 'Remove'  );
 		
 		$data['table'] = $table;
@@ -211,18 +212,29 @@ class defaultController extends appController
 		
 		if( strlen( $action ) < 1 || strlen( $table ) < 1  )
 		return ajax_echo( '参数不完整' );
-		
+		/*
 		if( $_REQUEST['st']['public'] == 1 ) $_REQUEST['st']['basic'] == 0;
 		else $_REQUEST['st']['basic'] == 1;
 		
 		if( $_REQUEST['st']['on'] == 1 ) $_REQUEST['st']['off'] == 0;
 		else $_REQUEST['st']['off'] == 1;
+		*/
+
+		$ret = array();
+		foreach( $_REQUEST['st'] as $k=>$v )
+		{
+			$ret[z(t($k))] = intval( $v );
+		}
 		
+		$_REQUEST['st'] = $ret;
+
+		//print_r(v('st'));
 		kset( 'msetting_' . $table . '_' . $action  ,  serialize( v('st') )  );
+		//print_r(serialize(v('st')));
 		//echo 'msetting_' . $table . '_' . $action .  '_' . $field . '`~'.serialize( v('st') );
 		//print_r( $kv );
-		
-		//echo $kv->get( 'msetting_' . $table . '_' . $action  );
+		//echo kget( 'msetting_' . $table . '_' . $action  );
+		//exit();
 		return ajax_echo('<script>window.location.reload();</script>');
 		
 		
@@ -313,7 +325,7 @@ class defaultController extends appController
 	public function login()
 	{
 		$data['title'] = $data['top_title'] = 'LazyRest - 最简单的Rest Server';
-		render( $data );	
+		render( $data );
 	}
 	
 	public function login_check()
