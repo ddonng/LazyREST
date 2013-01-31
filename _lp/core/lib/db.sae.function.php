@@ -165,6 +165,12 @@ function last_id( $db = NULL )
 	return get_var( "SELECT LAST_INSERT_ID() " , $db );
 }
 
+function get_table_pri( $table , $db=NULL)
+{
+	if( $db == NULL ) $db = db();
+	return get_var( "SELECT `COLUMN_NAME` FROM `information_schema`.`COLUMNS` WHERE (`TABLE_SCHEMA` = '".SAE_MYSQL_DB."') AND (`TABLE_NAME` = '".$table."') AND (`COLUMN_KEY` = 'PRI')" , $db );
+}
+
 function run_sql( $sql , $db = NULL )
 {
 	if( $db == NULL ) $db = db();
