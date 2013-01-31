@@ -45,6 +45,7 @@ function has_saekv()
 {
 	if( defined('SAE_ACCESSKEY') && substr( SAE_ACCESSKEY , 0 , 4 ) == 'kapp' ) return false;
  	return in_array( 'SaeKV' , get_declared_classes() );
+	//return true;
 }
 
 if( !has_saekv() ) @mkdir( AROOT. '__lr3_kv');
@@ -76,7 +77,17 @@ function kset( $key , $value )
 		return @file_put_contents($keyfile , serialize( $value )  );
 	}
 }
-
+//若kvdb中无，则直接数据库中查找，写入kvdb后再return
+function get_pri_name(  $table , $db=NULL )
+{
+	$pri_name=kget('primary_key_name_'.$table);
+	if ($pri_name=="")
+	{
+		$pri_name=get_table_pri( $table , $db);
+		kset( 'primary_key_name_'.$table , $pri_name);
+	}
+	return $pri_name;
+}
 
 function get_db_list( $db = NULL )
 {
