@@ -27,8 +27,9 @@ function send_form_pop( name )
 /*
 send form data via ajax and show the return content in front of the form 
 */
-function send_form_in( name )
+function send_form_in( name)
 {	
+	set_form_notice( name , "请稍后......" );
 	return send_form( name , function( data ){ set_form_notice( name , data ) } );
 }
 

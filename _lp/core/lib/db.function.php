@@ -123,6 +123,18 @@ function last_id( $db = NULL )
 	return get_var( "SELECT LAST_INSERT_ID() " , $db );
 }
 
+function get_table_pri( $table , $db=NULL)
+{
+	if( $db == NULL ) $db = db();
+	return get_var( "SELECT `COLUMN_NAME` FROM `information_schema`.`COLUMNS` WHERE (`TABLE_SCHEMA` = '".$GLOBALS['config']['db']['db_name']."') AND (`TABLE_NAME` = '".$table."') AND (`COLUMN_KEY` = 'PRI')" , $db );
+}
+
+function get_action_code( $table , $action )
+{
+	if( $db == NULL ) $db = db();
+	return get_var( "SELECT `code` FROM `__meta_code` WHERE `table` = '" . s( $table ) . "' AND `action` = '" . s($action) . "' LIMIT 1" );
+}
+
 function run_sql( $sql , $db = NULL )
 {
 	if( $db == NULL ) $db = db();

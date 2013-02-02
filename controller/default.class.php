@@ -39,6 +39,12 @@ class defaultController extends appController
   PRIMARY KEY (`id`)
 ) ";
 			run_sql( $sql );
+			$sql ="CREATE TABLE IF NOT EXISTS `__meta_setting` (
+  `key` varchar(200) NOT NULL,
+  `value` varchar(1000) NOT NULL,
+  UNIQUE KEY `key` (`key`)
+)";
+			run_sql( $sql );
 			$email = 'admin'.rand(1,999).'@admin.com';
 			$password = substr(md5(rand( 10000,8000 ) . time()) , 0 , 8);
 			
@@ -115,7 +121,6 @@ class defaultController extends appController
 		$out_code = t(v('out_code'));
 		
 		//print_r( $_REQUEST );
-		
 		$data['input_settings'] = kset( 'iosetting_input_' . $table  . '_' . $action  ,  $in_code ) ;
 		$data['out_settings'] =  kset( 'iosetting_output_' . $table  . '_' . $action  , $out_code )  ;
 		
@@ -212,13 +217,13 @@ class defaultController extends appController
 		
 		if( strlen( $action ) < 1 || strlen( $table ) < 1  )
 		return ajax_echo( '参数不完整' );
-		/*
-		if( $_REQUEST['st']['public'] == 1 ) $_REQUEST['st']['basic'] == 0;
-		else $_REQUEST['st']['basic'] == 1;
 		
-		if( $_REQUEST['st']['on'] == 1 ) $_REQUEST['st']['off'] == 0;
-		else $_REQUEST['st']['off'] == 1;
-		*/
+		if( $_REQUEST['st']['public'] == 1 ) $_REQUEST['st']['basic'] = 0;
+		else $_REQUEST['st']['basic'] = 1;
+		
+		if( $_REQUEST['st']['on'] == 1 ) $_REQUEST['st']['off'] = 0;
+		else $_REQUEST['st']['off'] = 1;
+		
 
 		$ret = array();
 		foreach( $_REQUEST['st'] as $k=>$v )
@@ -334,7 +339,7 @@ class defaultController extends appController
 		$password = z(t(v('password')));
 		
 		if( strlen( $email ) < 1 || strlen( $password ) < 1 )
-			return ajax_echo( "电子邮件和密码不能为空" );
+			return ajax_echo( "电子邮件或密码不能为空" );
 		
 		$sql = "SELECT `id` , `email` FROM `__meta_user` WHERE `email` = '" . s( $email ) . "' AND `password` = '" . md5( $password ) . "'";
 		

@@ -155,6 +155,7 @@ function get_line( $sql , $db = NULL )
 
 function get_var( $sql , $db = NULL )
 {
+	if( $db == NULL ) $db = db();
 	$data = get_line( $sql , $db );
 	return $data[ @reset(@array_keys( $data )) ];
 }
@@ -169,6 +170,26 @@ function get_table_pri( $table , $db=NULL)
 {
 	if( $db == NULL ) $db = db();
 	return get_var( "SELECT `COLUMN_NAME` FROM `information_schema`.`COLUMNS` WHERE (`TABLE_SCHEMA` = '".SAE_MYSQL_DB."') AND (`TABLE_NAME` = '".$table."') AND (`COLUMN_KEY` = 'PRI')" , $db );
+}
+
+function get_action_code( $table , $action )
+{
+	if( $db == NULL ) $db = db();
+	return get_var( "SELECT `code` FROM `__meta_code` WHERE `table` = '" . s( $table ) . "' AND `action` = '" . s($action) . "' LIMIT 1" ,$db );
+}
+
+//为本地测试而提供的函数
+function temp_kset_into( $key , $value )
+{
+	$sql = "REPLACE INTO `__meta_setting`(`key`,`value`) VALUES('". s( $key )."' , '". s($value) ."')";
+
+	return run_sql($sql);
+}
+
+function temp_kget_out( $key )
+{
+	$sql = "Select `value` FROM `__meta_setting` WHERE `key`='". s( $key ). "'";
+	return get_var($sql);
 }
 
 function run_sql( $sql , $db = NULL )

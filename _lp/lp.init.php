@@ -31,6 +31,7 @@ $post_fix = '.class.php';
 
 $cont_file = AROOT . 'controller'  . DS . $c . $post_fix;
 $class_name = $c .'Controller' ; 
+
 if( !file_exists( $cont_file ) )
 {
 	$cont_file = CROOT . 'controller' . DS . $c . $post_fix;
@@ -43,6 +44,7 @@ if( !class_exists( $class_name ) ) die('Can\'t find class - '   .  $class_name )
 
 
 $o = new $class_name;
+
 if( !method_exists( $o , $a ) ) die('Can\'t find method - '   . $a . ' ');
 
 

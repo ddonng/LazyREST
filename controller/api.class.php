@@ -31,7 +31,8 @@ class apiController extends appController
 			
 			
 		// user define code
-		if( $my_code = get_var( "SELECT `code` FROM `__meta_code` WHERE `table` = '" . s( $table ) . "' AND `action` = '" . s($action) . "' LIMIT 1" ) )
+		//if( $my_code = get_var( "SELECT `code` FROM `__meta_code` WHERE `table` = '" . s( $table ) . "' AND `action` = '" . s($action) . "' LIMIT 1" ) )
+		if($my_code=get_my_action_code($table,$action))
 		{
 			return eval(  $my_code  );
 			exit;
@@ -115,9 +116,14 @@ class apiController extends appController
 					if( mysql_errno() != 0 ) $this->send_error( LR_API_DB_ERROR , 'DATABASE ERROR ' . mysql_error() );
 					
 					$lid = last_id();
-					if( $lid < 1 ) $this->send_error( LR_API_DB_ERROR , 'DATABASE ERROR ' . mysql_error() );
+
+					if( $lid < 1 ) $this->send_error( LR_API_DB_ERROR , 'DATABASE ERROR' . mysql_error() );
 					
-					if( !$data = get_data( "SELECT " . rjoin( ' , ' , '`' , $outputs ). " FROM `" . s( $table ) . "` WHERE `id` = '" . intval( $lid ) . "'" , db() ))
+					//函数lib/app.function.php中
+					$pri_name=get_pri_name($table);
+
+					//将默认的id替换为表的primary key
+					if( !$data = get_data( "SELECT " . rjoin( ' , ' , '`' , $outputs ). " FROM `" . s( $table ) . "` WHERE `".$pri_name."` = '" . intval( $lid ) . "'" , db() ))
 						$this->send_error( LR_API_DB_ERROR , 'DATABASE ERROR ' . mysql_error() );
 					else
 					{
@@ -155,19 +161,27 @@ class apiController extends appController
 	
 					if( !isset($dsql) || !isset($wsql) ) return $this->send_error( LR_API_ARGS_ERROR , 'INPUT AND LIKE/EQUALS MUST HAS 1 FIELD AT LEAST' );
 					
-					$sql = "UPDATE `" . s( $table ) . "` SET " . join( ' , ' , $dsql ) . ' WHERE ' . join( ' AND ' , $wsql );
+					//函数lib/app.function.php中
+					$pri_name = get_pri_name($table);
+
+					//获取所更新的id号
+					$sql_GET_ID = "SELECT $pri_name FROM $table WHERE " . join( ' AND ' , $wsql );
+					$lid = get_var($sql_GET_ID,db());
+
+					if( $lid < 1 ) $this->send_error( LR_API_DB_ERROR , 'DATABASE ERROR ' . mysql_error() );
+
+					$sql = "UPDATE `" . s( $table ) . "` SET " . join( ' , ' , $dsql ) . " WHERE $pri_name = ".$lid;
 					
 					//echo $sql ;
 					run_sql( $sql );
 					
 					if( mysql_errno() != 0 ) $this->send_error( LR_API_DB_ERROR , 'DATABASE ERROR ' . mysql_error() );
 					
-					$lid = intval(v('id'));
 					
+					//$lid = intval(v('id'));//这里？？怎么会是用request获取
 					
-					if( $lid < 1 ) $this->send_error( LR_API_DB_ERROR , 'DATABASE ERROR ' . mysql_error() );
-					
-					if( !$data = get_data( "SELECT " . rjoin( ' , ' , '`' , $outputs ). " FROM `" . s( $table ) . "` WHERE `id` = '" . intval( $lid ) . "'" ))
+					//将默认的id替换为表的primary key
+					if( !$data = get_data( "SELECT " . rjoin( ' , ' , '`' , $outputs ). " FROM `" . s( $table ) . "` WHERE `".$pri_name."` = '" . intval( $lid ) . "'" ))
 						$this->send_error( LR_API_DB_ERROR , 'DATABASE ERROR ' . mysql_error() );
 					else
 					{
@@ -253,8 +267,12 @@ class apiController extends appController
 					
 					$sql = "SELECT " . rjoin( ',' , '`' , $outputs ) . " FROM `" . s( $table ) . "` WHERE 1 ";
 					
-					if( $since_id > 0 ) $wsql = " AND `id` > '" . intval( $since_id ) . "' ";
-					elseif( $max_id > 0 ) $wsql = " AND `id` < '" . intval( $max_id ) . "' ";
+					//函数lib/app.function.php中
+					$pri_name = get_pri_name($table);
+
+					//将id替换为$pri_name
+					if( $since_id > 0 ) $wsql = " AND `$pri_name` > '" . intval( $since_id ) . "' ";
+					elseif( $max_id > 0 ) $wsql = " AND `$pri_name` < '" . intval( $max_id ) . "' ";
 					
 					if( (count( $inputs ) > 0) && ((count($likes)+count($equals)) > 0) )
 					{
@@ -289,13 +307,13 @@ class apiController extends appController
 					if($idata = get_data( $sql ))
 					{
 						$first = reset( $idata );
-						$max_id = $first['id'];
-						$min_id = $first['id'];
+						$max_id = $first[$pri_name];
+						$min_id = $first[$pri_name];
 						
 						foreach( $idata as $item )
 						{
-							if( $item['id'] > $max_id ) $max_id = $item['id'];
-							if( $item['id'] < $min_id ) $min_id = $item['id'];
+							if( $item[$pri_name] > $max_id ) $max_id = $item[$pri_name];
+							if( $item[$pri_name] < $min_id ) $min_id = $item[$pri_name];
 						}
 						
 						$data = array( 'items' => $idata , 'max_id' => $max_id , 'min_id' => $min_id );
@@ -318,9 +336,7 @@ class apiController extends appController
 					
 							
 					
-					
-					
-					
+						
 					
 			}
 		
@@ -331,6 +347,7 @@ class apiController extends appController
 		
 	}
 	
+
 	public function get_token()
 	{
 		$token_account_field = c('token_account_field');
@@ -386,7 +403,7 @@ class apiController extends appController
 	}
 	
 	public function send_result( $data )
-	{
+	{ 
 		$obj = array();
 		$obj['err_code'] = '0';
 		$obj['err_msg'] = 'success';
