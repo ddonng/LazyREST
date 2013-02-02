@@ -135,6 +135,20 @@ function get_action_code( $table , $action )
 	return get_var( "SELECT `code` FROM `__meta_code` WHERE `table` = '" . s( $table ) . "' AND `action` = '" . s($action) . "' LIMIT 1" );
 }
 
+//为本地测试而提供的函数
+function temp_kset_into( $key , $value )
+{
+	$sql = "REPLACE INTO `__meta_setting`(`key`,`value`) VALUES('". s( $key )."' , '". s($value) ."')";
+
+	return run_sql($sql);
+}
+
+function temp_kget_out( $key )
+{
+	$sql = "Select `value` FROM `__meta_setting` WHERE `key`='". s( $key ). "'";
+	return get_var($sql);
+}
+
 function run_sql( $sql , $db = NULL )
 {
 	if( $db == NULL ) $db = db();
