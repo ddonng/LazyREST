@@ -1,7 +1,3 @@
-1.去除了id依赖
-2.增加本地环境支持（将设置同时写入mysql）
-3.send_form_in增加提交时的响应
-
 LazyREST 是一个直接使用Web接口进行配置的REST Server。目前它主要在SAE上使用。
 
 # LazyREST的特性
